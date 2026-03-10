@@ -4,3 +4,4 @@ session-data/
 data/
 logs/
 .env
+.wwebjs_cache/
