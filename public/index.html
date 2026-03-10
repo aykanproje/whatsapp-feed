@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0f1117" />
-  <title>WhatsApp Feed</title>
-  <script src="/socket.io/socket.io.js"></script>
+  <title>WhatsApp Feed — Demo</title>
   <style>
     *, *::before, *::after {
       box-sizing: border-box; margin: 0; padding: 0;
@@ -40,154 +39,100 @@
       overflow: hidden;
     }
 
-    body {
-      display: flex;
-      flex-direction: column;
-    }
+    body { display: flex; flex-direction: column; }
 
-    /* ── Header ──────────────────────────────────────────────────────────────── */
     #topbar {
       background: var(--card);
       border-bottom: 1px solid var(--border);
       padding: 12px 16px;
       padding-top: calc(12px + var(--safe-top));
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: flex; align-items: center; gap: 10px;
       flex-shrink: 0;
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
 
     #app-icon {
-      width: 34px; height: 34px;
-      border-radius: 10px;
+      width: 34px; height: 34px; border-radius: 10px;
       background: linear-gradient(135deg, #25d366, #128c7e);
       display: flex; align-items: center; justify-content: center;
       font-size: 18px; flex-shrink: 0;
     }
 
-    #topbar h1 {
-      font-size: 17px; font-weight: 700;
-      letter-spacing: -0.3px; flex: 1;
-    }
+    #topbar h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; flex: 1; }
 
     #status-pill {
       display: flex; align-items: center; gap: 5px;
-      background: var(--card2);
-      border: 1px solid var(--border);
+      background: var(--card2); border: 1px solid var(--border);
       padding: 4px 10px; border-radius: 20px;
-      font-size: 11px; font-weight: 600;
-      color: var(--sub);
+      font-size: 11px; font-weight: 600; color: var(--sub);
       white-space: nowrap;
     }
     #status-dot {
       width: 7px; height: 7px; border-radius: 50%;
-      background: var(--orange); flex-shrink: 0;
-      transition: background 0.4s;
+      background: var(--orange); flex-shrink: 0; transition: background 0.4s;
     }
     #status-dot.ready        { background: var(--green); }
     #status-dot.disconnected { background: var(--red); }
 
-    /* ── Group chips ─────────────────────────────────────────────────────────── */
     #group-strip {
-      background: var(--card);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 14px;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      overflow-x: auto;
-      flex-shrink: 0;
-      scrollbar-width: none;
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 10px 14px; display: none; align-items: center;
+      gap: 8px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none;
     }
     #group-strip.visible { display: flex; }
     #group-strip::-webkit-scrollbar { display: none; }
 
     #home-btn {
       display: inline-flex; align-items: center; gap: 4px;
-      height: 34px; padding: 0 14px;
-      border-radius: 17px;
-      font-size: 13px; font-weight: 600;
-      border: 1.5px solid var(--border);
-      cursor: pointer; white-space: nowrap;
-      background: none; color: var(--sub);
+      height: 34px; padding: 0 14px; border-radius: 17px;
+      font-size: 13px; font-weight: 600; border: 1.5px solid var(--border);
+      cursor: pointer; white-space: nowrap; background: none; color: var(--sub);
       transition: all 0.18s; flex-shrink: 0;
     }
     #home-btn:active { transform: scale(0.95); }
     #home-btn.active { color: var(--text); border-color: var(--accent); background: var(--accent)22; }
 
-    .strip-sep {
-      width: 1px; height: 20px;
-      background: var(--border); flex-shrink: 0;
-    }
+    .strip-sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
 
     .group-chip {
       display: inline-flex; align-items: center; gap: 6px;
-      height: 34px; padding: 0 14px;
-      border-radius: 17px;
-      font-size: 13px; font-weight: 600;
-      border: 1.5px solid transparent;
-      cursor: pointer; white-space: nowrap;
-      background: none;
+      height: 34px; padding: 0 14px; border-radius: 17px;
+      font-size: 13px; font-weight: 600; border: 1.5px solid transparent;
+      cursor: pointer; white-space: nowrap; background: none;
       transition: all 0.18s; flex-shrink: 0;
     }
-    .group-chip .dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .group-chip:active  { transform: scale(0.95); }
-    .group-chip.active  { border-color: currentColor !important; }
+    .group-chip .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .group-chip:active { transform: scale(0.95); }
+    .group-chip.active { border-color: currentColor !important; }
 
-    /* ── Active filter banner ────────────────────────────────────────────────── */
     #filter-bar {
-      display: none;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      background: var(--accent)18;
-      border-bottom: 1px solid var(--accent)44;
-      flex-shrink: 0;
+      display: none; align-items: center; gap: 8px; padding: 8px 14px;
+      background: var(--accent)18; border-bottom: 1px solid var(--accent)44; flex-shrink: 0;
     }
     #filter-bar.visible { display: flex; }
-
-    #filter-label {
-      font-size: 13px; font-weight: 600;
-      color: var(--text); flex: 1;
-    }
-
+    #filter-label { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
     #filter-clear {
       display: flex; align-items: center; gap: 5px;
       background: var(--card2); border: 1px solid var(--border);
       color: var(--sub); padding: 5px 12px; border-radius: 14px;
-      font-size: 12px; font-weight: 600; cursor: pointer;
-      white-space: nowrap;
+      font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
     }
     #filter-clear:active { opacity: 0.7; }
 
-    /* ── Feed ────────────────────────────────────────────────────────────────── */
     #feed {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
+      flex: 1; overflow-y: auto; overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       padding: 8px 12px 12px;
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
     }
     #feed::-webkit-scrollbar { display: none; }
     #feed { scrollbar-width: none; }
 
-    /* ── Message block ───────────────────────────────────────────────────────── */
     .msg {
-      display: flex;
-      align-items: flex-start;
-      gap: 11px;
-      padding: 10px 10px;
-      border-radius: 14px;
-      margin-top: 8px;
-      transition: background 0.15s;
-      position: relative;
+      display: flex; align-items: flex-start; gap: 11px;
+      padding: 10px 10px; border-radius: 14px; margin-top: 8px;
+      transition: background 0.15s; position: relative;
     }
     .msg:active  { background: var(--card)cc; }
     .msg.from-me { background: var(--accent)0d; }
@@ -199,148 +144,87 @@
       to   { opacity: 1; transform: translateY(0)  scale(1); }
     }
 
-    /* Grouped spacer with timeline line */
     .avatar-spacer {
       width: 44px; flex-shrink: 0;
-      display: flex; align-items: flex-start;
-      justify-content: center; padding-top: 2px;
+      display: flex; align-items: flex-start; justify-content: center; padding-top: 2px;
     }
-    .thread-line {
-      width: 2px; height: 100%; min-height: 18px;
-      border-radius: 1px; opacity: 0.2;
-    }
+    .thread-line { width: 2px; height: 100%; min-height: 18px; border-radius: 1px; opacity: 0.2; }
 
-    /* ── Message content ─────────────────────────────────────────────────────── */
     .msg-content { flex: 1; min-width: 0; }
 
     .msg-meta {
-      display: flex; align-items: center;
-      gap: 8px; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
       flex-wrap: wrap; line-height: 1;
     }
 
     .group-badge {
-      font-size: 15px; font-weight: 800;
-      padding: 3px 10px; border-radius: 10px;
-      white-space: nowrap; cursor: pointer;
-      border: 2px solid transparent;
+      font-size: 15px; font-weight: 800; padding: 3px 10px; border-radius: 10px;
+      white-space: nowrap; cursor: pointer; border: 2px solid transparent;
       transition: opacity 0.15s, border-color 0.15s;
-      letter-spacing: -0.1px;
-      line-height: 1.3;
+      letter-spacing: -0.1px; line-height: 1.3;
     }
     .group-badge:active { opacity: 0.7; }
 
     .author-name {
-      font-size: 16px; font-weight: 700;
-      cursor: pointer; line-height: 1.3;
-      letter-spacing: -0.2px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      max-width: 55vw;
-      padding: 3px 10px;
-      border-radius: 10px;
-      border: 2px solid transparent;
+      font-size: 16px; font-weight: 700; cursor: pointer; line-height: 1.3;
+      letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 55vw; padding: 3px 10px; border-radius: 10px; border: 2px solid transparent;
     }
     .author-name:active { opacity: 0.7; }
     .author-name.is-me  { color: var(--you); }
 
     .msg-time {
-      font-size: 11px; color: var(--sub);
-      margin-left: auto; white-space: nowrap;
-      flex-shrink: 0; font-weight: 500;
+      font-size: 11px; color: var(--sub); margin-left: auto;
+      white-space: nowrap; flex-shrink: 0; font-weight: 500;
     }
 
-    .msg-body {
-      font-size: 15px; line-height: 1.55;
-      color: var(--text); word-break: break-word;
-      white-space: pre-wrap;
-    }
+    .msg-body { font-size: 15px; line-height: 1.55; color: var(--text); word-break: break-word; white-space: pre-wrap; }
 
-    /* Grouped compact time */
     .compact-time {
-      font-size: 10px; color: var(--sub);
-      opacity: 0; transition: opacity 0.15s;
-      user-select: none; white-space: nowrap;
-      padding-top: 4px;
+      font-size: 10px; color: var(--sub); opacity: 0; transition: opacity 0.15s;
+      user-select: none; white-space: nowrap; padding-top: 4px;
     }
     .msg.grouped:active .compact-time,
     .msg.grouped:focus  .compact-time { opacity: 1; }
-    @media (hover: hover) {
-      .msg.grouped:hover .compact-time { opacity: 1; }
-    }
+    @media (hover: hover) { .msg.grouped:hover .compact-time { opacity: 1; } }
 
-    /* ── Media ───────────────────────────────────────────────────────────────── */
     .media-img {
-      max-width: min(320px, 75vw);
-      max-height: 260px;
-      border-radius: 12px;
-      display: block;
-      margin-top: 6px;
-      cursor: pointer;
-      object-fit: cover;
+      max-width: min(320px, 75vw); max-height: 260px;
+      border-radius: 12px; display: block; margin-top: 6px;
+      cursor: pointer; object-fit: cover;
     }
     .media-img:active { opacity: 0.85; }
+    .media-video { max-width: min(320px, 75vw); border-radius: 12px; display: block; margin-top: 6px; }
+    .media-audio { display: block; margin-top: 6px; width: min(280px, 70vw); }
 
-    .media-video {
-      max-width: min(320px, 75vw);
-      border-radius: 12px;
-      display: block;
-      margin-top: 6px;
-    }
-
-    .media-audio {
-      display: block; margin-top: 6px;
-      width: min(280px, 70vw);
-    }
-
-    /* ── Location card ───────────────────────────────────────────────────────── */
     .location-card {
-      margin-top: 8px;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      width: min(300px, 75vw);
-      display: block; text-decoration: none;
-      background: var(--card2);
+      margin-top: 8px; border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--border); width: min(300px, 75vw);
+      display: block; text-decoration: none; background: var(--card2);
     }
-    .location-card img {
-      width: 100%; height: 140px;
-      object-fit: cover; display: block;
-    }
+    .location-card img { width: 100%; height: 140px; object-fit: cover; display: block; }
     .location-card .loc-footer {
-      padding: 8px 12px;
-      display: flex; align-items: center; gap: 6px;
+      padding: 8px 12px; display: flex; align-items: center; gap: 6px;
       font-size: 13px; color: var(--blue); font-weight: 500;
     }
     .location-card:active { opacity: 0.85; }
 
-    /* ── Empty state ─────────────────────────────────────────────────────────── */
     #empty {
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      color: var(--sub); gap: 12px;
-      pointer-events: none; padding: 40px 20px;
-      text-align: center;
+      color: var(--sub); gap: 12px; pointer-events: none;
+      padding: 40px 20px; text-align: center;
     }
     #empty .empty-icon { font-size: 52px; opacity: 0.4; }
     #empty p     { font-size: 15px; font-weight: 500; }
     #empty small { font-size: 13px; opacity: 0.6; line-height: 1.5; }
 
-    /* ── FAB scroll button ───────────────────────────────────────────────────── */
     #fab-scroll {
-      position: fixed;
-      bottom: calc(20px + var(--safe-bot));
-      right: 16px;
-      width: 46px; height: 46px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      display: none;
-      align-items: center; justify-content: center;
-      box-shadow: 0 4px 20px rgba(99,102,241,0.45);
-      z-index: 10;
+      position: fixed; bottom: calc(20px + var(--safe-bot)); right: 16px;
+      width: 46px; height: 46px; border-radius: 50%;
+      background: var(--accent); color: #fff; border: none; font-size: 20px;
+      cursor: pointer; display: none; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.45); z-index: 10;
       transition: transform 0.15s, box-shadow 0.15s;
     }
     #fab-scroll.show { display: flex; animation: fabIn 0.2s ease; }
@@ -355,123 +239,76 @@
       position: absolute; top: -4px; right: -4px;
       background: var(--red); color: #fff;
       font-size: 10px; font-weight: 800;
-      min-width: 18px; height: 18px;
-      border-radius: 9px; padding: 0 4px;
+      min-width: 18px; height: 18px; border-radius: 9px; padding: 0 4px;
       display: none; align-items: center; justify-content: center;
       border: 2px solid var(--bg);
     }
     #fab-badge.show { display: flex; }
 
-    /* ── Profile bottom sheet ────────────────────────────────────────────────── */
     #profile-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.55);
-      z-index: 100;
-      display: none;
-      align-items: flex-end;
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 100;
+      display: none; align-items: flex-end;
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     }
     #profile-overlay.open { display: flex; animation: fadeIn 0.18s ease; }
-
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     #profile-sheet {
-      background: var(--card);
-      border-radius: 24px 24px 0 0;
-      border-top: 1px solid var(--border);
-      width: 100%;
+      background: var(--card); border-radius: 24px 24px 0 0;
+      border-top: 1px solid var(--border); width: 100%;
       padding-bottom: calc(28px + var(--safe-bot));
       animation: slideUp 0.25s cubic-bezier(0.34,1.1,0.64,1);
-      max-height: 88dvh;
-      overflow-y: auto;
+      max-height: 88dvh; overflow-y: auto;
     }
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to   { transform: translateY(0); }
-    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-    .sheet-handle {
-      width: 40px; height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      margin: 12px auto 20px;
-    }
+    .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 20px; }
 
     .profile-header {
-      display: flex; flex-direction: column;
-      align-items: flex-start; gap: 4px;
-      padding: 0 24px 20px;
-      border-bottom: 1px solid var(--border);
+      display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+      padding: 0 24px 20px; border-bottom: 1px solid var(--border);
     }
-
-    #profile-name {
-      font-size: 20px; font-weight: 800;
-      letter-spacing: -0.3px;
-    }
-    #profile-phone {
-      font-size: 14px; color: var(--sub);
-      font-weight: 500;
-    }
+    #profile-name  { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+    #profile-phone { font-size: 14px; color: var(--sub); font-weight: 500; }
 
     .profile-actions {
-      display: flex; gap: 10px;
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--border);
+      display: flex; gap: 10px; padding: 18px 20px; border-bottom: 1px solid var(--border);
     }
     .prof-btn {
       flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 6px; padding: 14px 8px;
-      border-radius: 16px;
-      background: var(--card2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 11px; font-weight: 600;
-      transition: opacity 0.15s;
+      align-items: center; justify-content: center; gap: 6px; padding: 14px 8px;
+      border-radius: 16px; background: var(--card2); border: 1px solid var(--border);
+      color: var(--text); cursor: pointer; text-decoration: none;
+      font-size: 11px; font-weight: 600; transition: opacity 0.15s;
     }
     .prof-btn:active { opacity: 0.7; }
     .prof-btn .btn-icon { font-size: 22px; }
-    .prof-btn.blue  { color: var(--blue); }
-    .prof-btn.green { color: var(--green); }
+    .prof-btn.blue   { color: var(--blue); }
+    .prof-btn.green  { color: var(--green); }
     .prof-btn.orange { color: var(--orange); }
 
-    .profile-nickname {
-      padding: 18px 20px;
-    }
+    .profile-nickname { padding: 18px 20px; }
     .profile-nickname label {
-      display: block; font-size: 12px;
-      font-weight: 600; color: var(--sub);
-      text-transform: uppercase; letter-spacing: 0.5px;
-      margin-bottom: 8px;
+      display: block; font-size: 12px; font-weight: 600; color: var(--sub);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
     }
-    .nickname-row {
-      display: flex; gap: 8px; align-items: center;
-    }
+    .nickname-row { display: flex; gap: 8px; align-items: center; }
     #nickname-input {
-      flex: 1; background: var(--card2);
-      border: 1px solid var(--border);
-      border-radius: 12px; padding: 11px 14px;
-      color: var(--text); font-size: 15px;
-      outline: none; font-family: inherit;
+      flex: 1; background: var(--card2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 11px 14px; color: var(--text);
+      font-size: 15px; outline: none; font-family: inherit;
     }
     #nickname-input:focus { border-color: var(--accent); }
     #nickname-input::placeholder { color: var(--sub); }
     #nickname-save {
-      background: var(--accent);
-      color: #fff; border: none;
+      background: var(--accent); color: #fff; border: none;
       padding: 11px 18px; border-radius: 12px;
-      font-size: 14px; font-weight: 700;
-      cursor: pointer; white-space: nowrap;
+      font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
     }
     #nickname-save:active { opacity: 0.8; }
     #nickname-clear {
-      font-size: 12px; color: var(--sub);
-      background: none; border: none;
-      cursor: pointer; margin-top: 8px;
-      display: none; padding: 4px 0;
+      font-size: 12px; color: var(--sub); background: none; border: none;
+      cursor: pointer; margin-top: 8px; display: none; padding: 4px 0;
     }
     #nickname-clear.show { display: block; }
   </style>
@@ -500,21 +337,17 @@
 <div id="feed">
   <div id="empty">
     <div class="empty-icon">💬</div>
-    <p>Mesaj bekleniyor…</p>
-    <small>Terminaldeki QR kodu telefonunla tara</small>
+    <p>Yükleniyor…</p>
   </div>
 </div>
 
-<!-- Profile bottom sheet -->
 <div id="profile-overlay" onclick="closeProfile()">
   <div id="profile-sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
-
     <div class="profile-header">
       <div id="profile-name"></div>
       <div id="profile-phone"></div>
     </div>
-
     <div class="profile-actions">
       <button class="prof-btn blue" id="prof-filter-btn" onclick="profileFilter()">
         <span class="btn-icon">⚡</span>Filtrele
@@ -526,7 +359,6 @@
         <span class="btn-icon">📞</span>Ara
       </a>
     </div>
-
     <div class="profile-nickname">
       <label>Takma Ad</label>
       <div class="nickname-row">
@@ -539,472 +371,533 @@
 </div>
 
 <button id="fab-scroll" onclick="scrollToBottom()">
-  ↓
-  <span id="fab-badge"></span>
+  ↓<span id="fab-badge"></span>
 </button>
 
 <script>
-  const feed        = document.getElementById('feed');
-  const empty       = document.getElementById('empty');
-  const statusDot   = document.getElementById('status-dot');
-  const statusTxt   = document.getElementById('status-text');
-  const groupStrip  = document.getElementById('group-strip');
-  const filterBar   = document.getElementById('filter-bar');
-  const filterLabel = document.getElementById('filter-label');
-  const fabScroll   = document.getElementById('fab-scroll');
-  const fabBadge    = document.getElementById('fab-badge');
+// ── Mock medya üreticileri ─────────────────────────────────────────────────────
 
-  // ── State ────────────────────────────────────────────────────────────────────
-  let allMessages     = [];
-  let filter          = { type: null, value: null };
-  let knownGroups     = new Map();
-  let autoScroll      = true;
-  let unreadCount     = 0;
-  let activeProfile   = null; // { author, contactId }
+function svgB64(svg) {
+  // Unicode-safe base64
+  return btoa(unescape(encodeURIComponent(svg)));
+}
 
-  // contactId → { author }  (keyed by contactId)
-  const contactRegistry = new Map();
+function photoMedia(emoji, from, to, caption) {
+  const cap = caption
+    ? `<text x="200" y="262" font-size="18" text-anchor="middle" fill="rgba(255,255,255,0.75)" font-family="system-ui,sans-serif">${caption}</text>`
+    : '';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${from}"/>
+      <stop offset="100%" stop-color="${to}"/>
+    </linearGradient></defs>
+    <rect width="400" height="300" fill="url(#g)" rx="16"/>
+    <text x="200" y="148" font-size="88" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
+    ${cap}
+  </svg>`;
+  return { mimetype: 'image/svg+xml', data: svgB64(svg) };
+}
 
-  // Nickname storage (localStorage, key: contactId)
-  const nicknames = JSON.parse(localStorage.getItem('wa_nicknames') || '{}');
+function videoMedia(emoji, from, to) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${from}"/>
+      <stop offset="100%" stop-color="${to}"/>
+    </linearGradient></defs>
+    <rect width="400" height="300" fill="url(#g)" rx="16"/>
+    <text x="200" y="126" font-size="60" text-anchor="middle" dominant-baseline="middle" opacity="0.5">${emoji}</text>
+    <rect x="318" y="262" width="64" height="22" rx="5" fill="rgba(0,0,0,0.55)"/>
+    <text x="350" y="277" font-size="12" text-anchor="middle" fill="white" font-family="monospace">0:14</text>
+    <circle cx="200" cy="196" r="30" fill="rgba(0,0,0,0.52)"/>
+    <polygon points="191,183 191,209 217,196" fill="white"/>
+  </svg>`;
+  return { mimetype: 'image/svg+xml', data: svgB64(svg) };
+}
 
-  function saveNicknames() {
-    localStorage.setItem('wa_nicknames', JSON.stringify(nicknames));
-  }
+// Hazır medya nesneleri
+const M = {
+  sunset:     photoMedia('🌅','#ff6b35','#f7c59f','Ofis binasından gün batımı'),
+  meeting:    photoMedia('📊','#2c3e50','#3498db','Toplantı notları'),
+  lunch:      photoMedia('🍝','#e74c3c','#f39c12','Öğle yemeği'),
+  deploy:     photoMedia('🎉','#8e44ad','#3498db','Deploy sonrası kutlama'),
+  screen:     photoMedia('💻','#1a1a2e','#16213e','Ekran görüntüsü'),
+  whiteboard: photoMedia('🗒️','#b0bec5','#eceff1','Sprint planı — beyaz tahta'),
+  evening:    photoMedia('🌆','#fc4445','#3b1f2b','İstanbul akşamı'),
+  dark:       videoMedia('🌙','#0f0c29','#302b63'),
+  standup:    videoMedia('🎥','#0f2027','#2c5364'),
+  demo:       videoMedia('🚀','#1a1a2e','#533483'),
+};
 
-  function displayName(author, contactId) {
-    const key = contactId || ('name:' + author);
-    return nicknames[key] || author;
-  }
+// Konum verileri
+const L = {
+  taksim:     { latitude: 41.0369,  longitude: 28.9851,  description: 'Taksim Meydanı, İstanbul' },
+  levent:     { latitude: 41.0782,  longitude: 29.0128,  description: 'Levent, İstanbul' },
+  restaurant: { latitude: 41.0302,  longitude: 28.9784,  description: 'Osmanlı Restaurant' },
+  ankara:     { latitude: 39.9208,  longitude: 32.8541,  description: 'Kızılay, Ankara' },
+};
 
-  const GROUP_GAP_SEC = 300; // 5dk içinde aynı kişi → grupla
+// Kişiler
+// a = görünen ad  |  id = contactId
+// Kayıtlı: gerçek ad | Kayıtsız handle: @xxx | Kayıtsız numara: +90...
+const P = {
+  ahmet:   { a:'Ahmet Yılmaz',      id:'905551234567@c.us' },
+  zeynep:  { a:'Zeynep Kaya',       id:'905557654321@c.us' },
+  murat:   { a:'Murat Demir',       id:'905553456789@c.us' },
+  elif:    { a:'Elif Şahin',        id:'905559876543@c.us' },
+  omer:    { a:'Ömer Çelik',        id:'905552345678@c.us' },
+  handle1: { a:'@berk.arslan',      id:'905554321098@c.us' },
+  handle2: { a:'@selin_y',          id:'905556789012@c.us' },
+  num1:    { a:'+90 533 812 44 67', id:'905338124467@c.us' },
+  num2:    { a:'+90 542 907 33 21', id:'905429073321@c.us' },
+};
 
-  // ── Renk paleti ──────────────────────────────────────────────────────────────
-  const PALETTE = [
-    '#60a5fa','#4ade80','#fb923c','#f472b6','#a78bfa',
-    '#34d399','#f87171','#38bdf8','#facc15','#818cf8',
-    '#22d3ee','#e879f9','#86efac','#fda4af','#93c5fd',
+// ── Geçmiş mesajlar ────────────────────────────────────────────────────────────
+// t = şimdiden kaç saniye önce (negatif)
+function makeHistory() {
+  const base = Math.floor(Date.now() / 1000);
+  const rows = [
+    // Proje Ekibi
+    { g:'Proje Ekibi 🚀', ...P.ahmet,   t:-7200, b:'Günaydın ekip 👋 Bugün deploy günümüz.' },
+    { g:'Proje Ekibi 🚀', ...P.zeynep,  t:-7100, b:'Günaydın! Testleri sabah bitirdim, hazır ✅' },
+    { g:'Proje Ekibi 🚀', ...P.murat,   t:-7050, b:'Ben de loglara bakıyorum, sorun yok görünüyor.' },
+    { g:'Proje Ekibi 🚀', ...P.handle1, t:-7020, b:'Harika, ben de hazırım 💪' },
+    { g:'Proje Ekibi 🚀', ...P.elif,    t:-6950, b:'Sabah notlarını çektim 📸', media: M.meeting },
+    { g:'Proje Ekibi 🚀', ...P.ahmet,   t:-6800, b:'Harika. Staging\'i bir daha kontrol edelim önce.' },
+    { g:'Proje Ekibi 🚀', ...P.zeynep,  t:-6600, b:'Staging tamam, validasyonlar çalışıyor 🎉' },
+    { g:'Proje Ekibi 🚀', ...P.num1,    t:-6550, b:'Ben de onayladım, looks good 👍' },
+    { g:'Proje Ekibi 🚀', ...P.ahmet,   t:-6500, b:'Deploy\'a geçelim. Murat hazır mısın?' },
+    { g:'Proje Ekibi 🚀', ...P.murat,   t:-6400, b:'Hazırım, CI pipeline\'ı başlattım ✅' },
+    { g:'Proje Ekibi 🚀', ...P.elif,    t:-6200, b:'🎥 Dünkü standup kaydı', media: M.standup },
+    { g:'Proje Ekibi 🚀', ...P.zeynep,  t:-6000, b:'Deploy tamamlandı! 🚀 v2.4.1 production\'da.' },
+    { g:'Proje Ekibi 🚀', ...P.murat,   t:-5950, b:'🎊', media: M.deploy },
+    { g:'Proje Ekibi 🚀', ...P.ahmet,   t:-5800, b:'Tebrikler herkese, harika iş çıkardık 💪' },
+
+    // Ofis Genel
+    { g:'Ofis Genel 💼',  ...P.omer,    t:-5400, b:'Merhaba! Öğle yemeği için kim var? 🍕' },
+    { g:'Ofis Genel 💼',  ...P.zeynep,  t:-5350, b:'Ben varım! Nereye gidiyoruz?' },
+    { g:'Ofis Genel 💼',  ...P.handle2, t:-5330, b:'Ben de geliyorum!' },
+    { g:'Ofis Genel 💼',  ...P.murat,   t:-5300, b:'Köşedeki Osmanlı\'ya gidelim mi?' },
+    { g:'Ofis Genel 💼',  ...P.omer,    t:-5260, b:'📍 Osmanlı Restaurant', location: L.restaurant },
+    { g:'Ofis Genel 💼',  ...P.elif,    t:-5200, b:'Ben biraz geç gelebilirim ama katılmaya çalışırım 😅' },
+    { g:'Ofis Genel 💼',  ...P.omer,    t:-4900, b:'Enfes 😋', media: M.lunch },
+    { g:'Ofis Genel 💼',  ...P.num2,    t:-4860, b:'Gelemiyorum bugün 😞' },
+    { g:'Ofis Genel 💼',  ...P.ahmet,   t:-4800, b:'Yarınki toplantı iptal mi? Takvimde gördüm.' },
+    { g:'Ofis Genel 💼',  ...P.omer,    t:-4700, b:'Evet iptal, Perşembe\'ye alındı.' },
+    { g:'Ofis Genel 💼',  ...P.zeynep,  t:-4600, b:'Ofisten böyle görünüyor şu an 🌅', media: M.sunset },
+
+    // Müşteri Destek
+    { g:'Müşteri Destek ⚡', ...P.zeynep,  t:-4200, b:'Müşteri #1423 için ticket geldi. Ödeme sayfasında hata.' },
+    { g:'Müşteri Destek ⚡', ...P.murat,   t:-4100, b:'Bakıyorum hemen.' },
+    { g:'Müşteri Destek ⚡', ...P.handle1, t:-4080, b:'Müşteri canlı chat\'te de yazıyor, hızlı çözelim.' },
+    { g:'Müşteri Destek ⚡', ...P.zeynep,  t:-4050, b:'Müşterinin gönderdiği ekran görüntüsü:', media: M.screen },
+    { g:'Müşteri Destek ⚡', ...P.murat,   t:-4000, b:'Buldum — gateway\'inde timeout. Destek ekibine ilettim.' },
+    { g:'Müşteri Destek ⚡', ...P.zeynep,  t:-3900, b:'Müşteriyi bilgilendiriyorum 🙏' },
+    { g:'Müşteri Destek ⚡', ...P.elif,    t:-3600, b:'Gateway düzeldi ✅ Ticket kapatabilirsin.' },
+
+    // Proje Ekibi — devam
+    { g:'Proje Ekibi 🚀', ...P.zeynep,  t:-2400, b:'Deploy sonrası hata oranı %3\'ten %0.2\'ye düştü 📉' },
+    { g:'Proje Ekibi 🚀', ...P.ahmet,   t:-2300, b:'Bu veriyi raporda kullanacağız.' },
+    { g:'Proje Ekibi 🚀', ...P.murat,   t:-2100, b:'🎥 Yeni API\'nin demo kaydı', media: M.demo },
+    { g:'Proje Ekibi 🚀', ...P.elif,    t:-2000, b:'Çok akıcı olmuş, tebrikler 🔥' },
+    { g:'Proje Ekibi 🚀', ...P.num1,    t:-1950, b:'🔥🔥' },
+
+    // Ofis Genel — devam
+    { g:'Ofis Genel 💼',  ...P.omer,    t:-1800, b:'Mutfakta pasta var 🎂' },
+    { g:'Ofis Genel 💼',  ...P.elif,    t:-1750, b:'Geliyo geliyo!! 🏃‍♀️' },
+    { g:'Ofis Genel 💼',  ...P.murat,   t:-1700, b:'📍 Remote\'dayım bugün', location: L.ankara },
+    { g:'Ofis Genel 💼',  ...P.handle2, t:-1660, b:'Ne zaman dönüyorsun Murat?' },
+    { g:'Ofis Genel 💼',  ...P.murat,   t:-1640, b:'Cuma 🙂' },
+
+    // Müşteri Destek — devam
+    { g:'Müşteri Destek ⚡', ...P.murat,   t:-1200, b:'Yeni ticket: Müşteri #1891 mobil uygulamada bildirim almıyor.' },
+    { g:'Müşteri Destek ⚡', ...P.elif,    t:-1100, b:'Bakıyorum. Push token sorunu olabilir.' },
+    { g:'Müşteri Destek ⚡', ...P.handle1, t:-1050, b:'Aynı sorunu ben de test ortamında gördüm.' },
+
+    // Proje Ekibi — son
+    { g:'Proje Ekibi 🚀', ...P.elif,    t: -600, b:'Bir sonraki sprint için kart: dark mode desteği 🌙' },
+    { g:'Proje Ekibi 🚀', ...P.ahmet,   t: -550, b:'Süper fikir! Ekleyelim.' },
+    { g:'Proje Ekibi 🚀', ...P.zeynep,  t: -480, b:'Sprint planı 📋', media: M.whiteboard },
+    { g:'Proje Ekibi 🚀', ...P.murat,   t: -430, b:'Dark mode kullanıcıların %60\'ı tercih ediyor 😅' },
+    { g:'Proje Ekibi 🚀', ...P.zeynep,  t: -400, b:'Kesinlikle öncelikli yapmalıyız!' },
+    { g:'Proje Ekibi 🚀', ...P.ahmet,   t: -300, b:'Akşam kutlama için buluşuyoruz 🎉', location: L.taksim },
+    { g:'Proje Ekibi 🚀', ...P.num2,    t: -280, b:'Ben de gelirim!' },
   ];
+  return rows.map(h => ({
+    groupName: h.g, author: h.a, body: h.b,
+    timestamp: base + h.t,
+    contactId: h.id,
+    chatId: h.g.toLowerCase().replace(/[^a-z0-9]/g, '') + '@g.us',
+    media: h.media || null,
+    location: h.location || null,
+  }));
+}
 
-  // Grup renkleri — isim bazlı, deterministik
-  const colorCache = {};
-  function groupColor(name) {
-    if (!colorCache[name]) {
-      let h = 0;
-      for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-      colorCache[name] = PALETTE[h % PALETTE.length];
-    }
-    return colorCache[name];
+// Canlı mesajlar (setTimeout ile düşer)
+function makeLive() {
+  const base = Math.floor(Date.now() / 1000);
+  return [
+    { delay: 8000,  g:'Proje Ekibi 🚀', ...P.ahmet,   b:'Dark mode için tasarımcıya yazdım 🎨' },
+    { delay: 15000, g:'Ofis Genel 💼',  ...P.omer,    b:'Pasta bitti btw 😂' },
+    { delay: 21000, g:'Proje Ekibi 🚀', ...P.handle1, b:'Dark mode için purple tema öneririm 👀' },
+    { delay: 27000, g:'Ofis Genel 💼',  ...P.elif,    b:'Harika bir gün 🌆', media: M.evening },
+    { delay: 34000, g:'Müşteri Destek ⚡', ...P.elif, b:'Push token yenilendi, bildirimler çalışıyor ✅' },
+    { delay: 39000, g:'Müşteri Destek ⚡', ...P.num2, b:'Teşekkürler, müşteri onayladı.' },
+    { delay: 45000, g:'Ofis Genel 💼',  ...P.murat,   b:'📍 Levent ofisindeyim', location: L.levent },
+    { delay: 53000, g:'Proje Ekibi 🚀', ...P.zeynep,  b:'Tasarım geldi, harika görünüyor 🌙✨' },
+    { delay: 63000, g:'Proje Ekibi 🚀', ...P.murat,   b:'🎥 Dark mode prototype', media: M.dark },
+    { delay: 68000, g:'Proje Ekibi 🚀', ...P.handle2, b:'Çok güzel çıkmış 😍' },
+    { delay: 74000, g:'Müşteri Destek ⚡', ...P.zeynep, b:'Bugün 5 ticket kapattık 💪' },
+    { delay: 85000, g:'Ofis Genel 💼',  ...P.ahmet,   b:'Herkese iyi akşamlar! 🌆' },
+  ].map(item => ({
+    ...item,
+    groupName: item.g, author: item.a,
+    contactId: item.id,
+    chatId: item.g.toLowerCase().replace(/[^a-z0-9]/g, '') + '@g.us',
+    timestamp: 0, // will be set on send
+    media: item.media || null,
+    location: item.location || null,
+  }));
+}
+
+// ── App state ─────────────────────────────────────────────────────────────────
+const feed        = document.getElementById('feed');
+const empty       = document.getElementById('empty');
+const statusDot   = document.getElementById('status-dot');
+const statusTxt   = document.getElementById('status-text');
+const groupStrip  = document.getElementById('group-strip');
+const filterBar   = document.getElementById('filter-bar');
+const filterLabel = document.getElementById('filter-label');
+const fabScroll   = document.getElementById('fab-scroll');
+const fabBadge    = document.getElementById('fab-badge');
+
+let allMessages   = [];
+let filter        = { type: null, value: null };
+let knownGroups   = new Map();
+let autoScroll    = true;
+let unreadCount   = 0;
+let activeProfile = null;
+
+const contactRegistry = new Map();
+const nicknames = JSON.parse(localStorage.getItem('wa_nicknames') || '{}');
+function saveNicknames() { localStorage.setItem('wa_nicknames', JSON.stringify(nicknames)); }
+function displayName(author, contactId) {
+  return nicknames[contactId || ('name:' + author)] || author;
+}
+
+const GROUP_GAP_SEC = 300;
+
+const PALETTE = [
+  '#60a5fa','#4ade80','#fb923c','#f472b6','#a78bfa',
+  '#34d399','#f87171','#38bdf8','#facc15','#818cf8',
+  '#22d3ee','#e879f9','#86efac','#fda4af','#93c5fd',
+];
+const colorCache = {};
+function groupColor(name) {
+  if (!colorCache[name]) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+    colorCache[name] = PALETTE[h % PALETTE.length];
   }
+  return colorCache[name];
+}
 
-  // Gönderici renkleri — contactId bazlı, localStorage'da persistent
-  const authorColors = JSON.parse(localStorage.getItem('wa_author_colors') || '{}');
-  let _colorIdx = Object.keys(authorColors).length % PALETTE.length;
-
-  function authorColor(author, contactId) {
-    // Key: contactId varsa onu kullan (takma ad değişince renk korunur)
-    const key = contactId || ('name:' + author);
-    if (!authorColors[key]) {
-      // Sıradaki rengi ata (kullanılan renklerden farklı sırayla döner)
-      authorColors[key] = PALETTE[_colorIdx % PALETTE.length];
-      _colorIdx++;
-      localStorage.setItem('wa_author_colors', JSON.stringify(authorColors));
-    }
-    return authorColors[key];
+const authorColors = JSON.parse(localStorage.getItem('wa_author_colors') || '{}');
+let _colorIdx = Object.keys(authorColors).length % PALETTE.length;
+function authorColor(author, contactId) {
+  const key = contactId || ('name:' + author);
+  if (!authorColors[key]) {
+    authorColors[key] = PALETTE[_colorIdx % PALETTE.length];
+    _colorIdx++;
+    localStorage.setItem('wa_author_colors', JSON.stringify(authorColors));
   }
-  function initials(s) {
-    return s.split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase() || '?';
+  return authorColors[key];
+}
+function initials(s) { return s.split(/\s+/).map(w => w[0]||'').join('').slice(0,2).toUpperCase()||'?'; }
+
+// ── Filter ────────────────────────────────────────────────────────────────────
+function setFilter(type, value) { filter = { type, value }; updateFilterUI(); renderAll(); }
+function clearFilter() {
+  filter = { type: null, value: null }; updateFilterUI(); renderAll(true);
+  [80,300,700].forEach(ms => setTimeout(() => { feed.scrollTop = feed.scrollHeight; }, ms));
+}
+function msgMatches(m) {
+  if (!filter.type) return true;
+  if (filter.type === 'group')  return m.groupName === filter.value;
+  if (filter.type === 'author') return m.author    === filter.value;
+  return true;
+}
+function updateFilterUI() {
+  if (filter.type) {
+    filterLabel.textContent = (filter.type === 'group' ? '💬 ' : '👤 ') + filter.value;
+    filterBar.classList.add('visible');
+  } else {
+    filterBar.classList.remove('visible');
   }
-
-  // ── Filter ───────────────────────────────────────────────────────────────────
-  function setFilter(type, value) {
-    filter = { type, value };
-    updateFilterUI();
-    renderAll();
-  }
-
-  function clearFilter() {
-    filter = { type: null, value: null };
-    updateFilterUI();
-    renderAll(true);
-    [80, 300, 700].forEach(ms => setTimeout(() => { feed.scrollTop = feed.scrollHeight; }, ms));
-  }
-
-  function msgMatches(m) {
-    if (!filter.type) return true;
-    if (filter.type === 'group')  return m.groupName === filter.value;
-    if (filter.type === 'author') return m.author    === filter.value;
-    return true;
-  }
-
-  function updateFilterUI() {
-    if (filter.type) {
-      const icon  = filter.type === 'group' ? '💬' : '👤';
-      filterLabel.textContent = `${icon} ${filter.value}`;
-      filterBar.classList.add('visible');
-    } else {
-      filterBar.classList.remove('visible');
-    }
-
-    groupStrip.querySelectorAll('.group-chip').forEach(c => {
-      c.classList.toggle('active', filter.type === 'group' && c.dataset.group === filter.value);
-    });
-    document.getElementById('home-btn').classList.toggle('active', !filter.type);
-    updateMsgCount();
-  }
-
-  function updateMsgCount() {
-    const n = filter.type ? allMessages.filter(msgMatches).length : allMessages.length;
-    document.title = `(${n}) WhatsApp Feed`;
-  }
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      if (activeProfile) closeProfile();
-      else if (filter.type) clearFilter();
-    }
+  groupStrip.querySelectorAll('.group-chip').forEach(c => {
+    c.classList.toggle('active', filter.type === 'group' && c.dataset.group === filter.value);
   });
+  document.getElementById('home-btn').classList.toggle('active', !filter.type);
+  updateMsgCount();
+}
+function updateMsgCount() {
+  const n = filter.type ? allMessages.filter(msgMatches).length : allMessages.length;
+  document.title = `(${n}) WhatsApp Feed — Demo`;
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (activeProfile) closeProfile(); else if (filter.type) clearFilter(); }
+});
 
-  // ── Profile sheet ─────────────────────────────────────────────────────────────
-  function openProfile(author, contactId) {
-    if (author === 'Sen') return; // kendi profilini açma
-    activeProfile = { author, contactId };
+// ── Profile sheet ─────────────────────────────────────────────────────────────
+function nicknameKey(contactId, author) { return contactId || ('name:' + author); }
+function openProfile(author, contactId) {
+  activeProfile = { author, contactId };
+  const phone = contactId ? contactId.replace('@c.us','') : null;
+  const key   = nicknameKey(contactId, author);
+  const nick  = nicknames[key] || '';
+  document.getElementById('profile-name').textContent  = nick || author;
+  document.getElementById('profile-phone').textContent = phone ? `+${phone}` : '';
+  const msgBtn  = document.getElementById('prof-msg-btn');
+  const callBtn = document.getElementById('prof-call-btn');
+  if (phone) {
+    msgBtn.href  = `https://wa.me/${phone}`; callBtn.href = `tel:+${phone}`;
+    msgBtn.style.opacity = callBtn.style.opacity = '1';
+    msgBtn.style.pointerEvents = callBtn.style.pointerEvents = '';
+  } else {
+    msgBtn.href = callBtn.href = '#';
+    msgBtn.style.opacity = callBtn.style.opacity = '0.35';
+    msgBtn.style.pointerEvents = callBtn.style.pointerEvents = 'none';
+  }
+  document.getElementById('nickname-input').value = nick;
+  document.getElementById('nickname-clear').classList.toggle('show', !!nick);
+  document.getElementById('profile-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeProfile() {
+  activeProfile = null;
+  document.getElementById('profile-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function profileFilter() {
+  if (!activeProfile) return;
+  const author = activeProfile.author; closeProfile();
+  if (filter.type === 'author' && filter.value === author) clearFilter();
+  else setFilter('author', author);
+}
+function saveNickname() {
+  if (!activeProfile) return;
+  const key = nicknameKey(activeProfile.contactId, activeProfile.author);
+  const val = document.getElementById('nickname-input').value.trim();
+  if (val) nicknames[key] = val; else delete nicknames[key];
+  saveNicknames(); closeProfile(); renderAll();
+}
+function clearNickname() {
+  if (!activeProfile) return;
+  const key = nicknameKey(activeProfile.contactId, activeProfile.author);
+  delete nicknames[key]; saveNicknames();
+  document.getElementById('nickname-input').value = '';
+  document.getElementById('profile-name').textContent = activeProfile.author;
+  document.getElementById('nickname-clear').classList.remove('show');
+  renderAll();
+}
 
-    const phone = contactId ? contactId.replace('@c.us', '') : null;
-    const key   = nicknameKey(contactId, author);
-    const nick  = nicknames[key] || '';
-    const shown = nick || author;
+// ── Group strip ───────────────────────────────────────────────────────────────
+function ensureGroupChip(groupName) {
+  if (knownGroups.has(groupName)) return;
+  const color = groupColor(groupName);
+  knownGroups.set(groupName, color);
+  groupStrip.classList.add('visible');
+  const chip = document.createElement('button');
+  chip.className = 'group-chip'; chip.dataset.group = groupName;
+  chip.style.color = color; chip.style.background = color + '18';
+  chip.innerHTML = `<span class="dot" style="background:${color}"></span>${groupName}`;
+  chip.onclick = () => {
+    if (filter.type === 'group' && filter.value === groupName) clearFilter();
+    else setFilter('group', groupName);
+  };
+  groupStrip.appendChild(chip);
+}
 
-    document.getElementById('profile-name').textContent = shown;
-    document.getElementById('profile-phone').textContent = phone ? `+${phone}` : '';
+// ── FAB scroll ────────────────────────────────────────────────────────────────
+feed.addEventListener('scroll', () => {
+  const dist = feed.scrollHeight - feed.scrollTop - feed.clientHeight;
+  autoScroll = dist < 80;
+  if (autoScroll) { fabScroll.classList.remove('show'); unreadCount = 0; fabBadge.classList.remove('show'); }
+  else            { fabScroll.classList.add('show'); }
+});
+function scrollToBottom() {
+  feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' });
+  autoScroll = true; unreadCount = 0;
+  fabScroll.classList.remove('show'); fabBadge.classList.remove('show');
+}
 
-    // Mesaj / Ara butonları — her zaman göster, numara yoksa disabled
-    const msgBtn  = document.getElementById('prof-msg-btn');
-    const callBtn = document.getElementById('prof-call-btn');
-    msgBtn.style.display  = '';
-    callBtn.style.display = '';
-    if (phone) {
-      msgBtn.href    = `https://wa.me/${phone}`;
-      callBtn.href   = `tel:+${phone}`;
-      msgBtn.style.opacity  = '1';
-      callBtn.style.opacity = '1';
-      msgBtn.style.pointerEvents  = '';
-      callBtn.style.pointerEvents = '';
-      msgBtn.title  = '';
-      callBtn.title = '';
-    } else {
-      msgBtn.href    = '#';
-      callBtn.href   = '#';
-      msgBtn.style.opacity  = '0.35';
-      callBtn.style.opacity = '0.35';
-      msgBtn.style.pointerEvents  = 'none';
-      callBtn.style.pointerEvents = 'none';
-      msgBtn.title  = 'Numara bilgisi yok';
-      callBtn.title = 'Numara bilgisi yok';
-    }
+// ── Time format ───────────────────────────────────────────────────────────────
+function fmtTime(unix) {
+  const d = new Date(unix * 1000), now = new Date();
+  const p = n => String(n).padStart(2,'0');
+  const t = `${p(d.getHours())}:${p(d.getMinutes())}`;
+  return d.toDateString() === now.toDateString() ? t : `${p(d.getDate())}/${p(d.getMonth()+1)} ${t}`;
+}
 
-    // Nickname alanı
-    document.getElementById('nickname-input').value = nick;
-    document.getElementById('nickname-clear').classList.toggle('show', !!nick);
+// ── Build row ─────────────────────────────────────────────────────────────────
+function buildRow(m, prevMsg, animate) {
+  const { groupName, author, body, timestamp, contactId, chatId, media, location } = m;
+  const isMe   = author === 'Sen';
+  const gColor = groupColor(groupName);
+  const aColor = isMe ? '#7c3aed' : authorColor(author, contactId);
+  const isGrouped = prevMsg && prevMsg.author === author && prevMsg.groupName === groupName
+    && (timestamp - prevMsg.timestamp) <= GROUP_GAP_SEC;
 
-    document.getElementById('profile-overlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
+  const row = document.createElement('div');
+  row.className = ['msg', isMe?'from-me':'', isGrouped?'grouped':'', animate?'new':''].filter(Boolean).join(' ');
+  row.style.background = aColor + '0d';
+
+  const leftCol = document.createElement('div');
+  leftCol.className = 'avatar-spacer';
+  const line = document.createElement('div');
+  line.className = 'thread-line'; line.style.background = aColor;
+  leftCol.appendChild(line);
+  if (isGrouped) {
+    const ct = document.createElement('span');
+    ct.className = 'compact-time'; ct.textContent = fmtTime(timestamp);
+    leftCol.appendChild(ct);
   }
 
-  function closeProfile() {
-    activeProfile = null;
-    document.getElementById('profile-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
+  const content = document.createElement('div');
+  content.className = 'msg-content';
 
-  function profileFilter() {
-    if (!activeProfile) return;
-    const author = activeProfile.author; // closeProfile'dan önce kaydet
-    closeProfile();
-    if (filter.type === 'author' && filter.value === author) clearFilter();
-    else setFilter('author', author);
-  }
+  if (!isGrouped) {
+    const meta = document.createElement('div');
+    meta.className = 'msg-meta';
 
-  // Nickname key: contactId varsa onu kullan, yoksa "name:xxx" fallback
-  function nicknameKey(contactId, author) {
-    return contactId || ('name:' + author);
-  }
-
-  function saveNickname() {
-    if (!activeProfile) return;
-    const key = nicknameKey(activeProfile.contactId, activeProfile.author);
-    const val = document.getElementById('nickname-input').value.trim();
-    if (val) nicknames[key] = val;
-    else delete nicknames[key];
-    saveNicknames();
-    closeProfile();
-    renderAll(); // tüm feed'i yeniden render et — geriye dönük de günceller
-  }
-
-  function clearNickname() {
-    if (!activeProfile) return;
-    const key = nicknameKey(activeProfile.contactId, activeProfile.author);
-    delete nicknames[key];
-    saveNicknames();
-    document.getElementById('nickname-input').value = '';
-    document.getElementById('profile-name').textContent = activeProfile.author;
-    document.getElementById('nickname-clear').classList.remove('show');
-    renderAll();
-  }
-
-  // ── Group strip ───────────────────────────────────────────────────────────────
-  function ensureGroupChip(groupName) {
-    if (knownGroups.has(groupName)) return;
-    const color = groupColor(groupName);
-    knownGroups.set(groupName, color);
-    groupStrip.classList.add('visible');
-
-    const chip = document.createElement('button');
-    chip.className = 'group-chip';
-    chip.dataset.group = groupName;
-    chip.style.color = color;
-    chip.style.background = color + '18';
-    chip.innerHTML = `<span class="dot" style="background:${color}"></span>${groupName}`;
-    chip.onclick = () => {
+    const badge = document.createElement('span');
+    badge.className = 'group-badge';
+    badge.style.background = gColor + '20'; badge.style.color = gColor;
+    badge.textContent = groupName;
+    badge.onclick = () => {
       if (filter.type === 'group' && filter.value === groupName) clearFilter();
       else setFilter('group', groupName);
     };
-    groupStrip.appendChild(chip);
-  }
 
-  // ── FAB scroll ────────────────────────────────────────────────────────────────
-  feed.addEventListener('scroll', () => {
-    const dist = feed.scrollHeight - feed.scrollTop - feed.clientHeight;
-    autoScroll = dist < 80;
-    if (autoScroll) {
-      fabScroll.classList.remove('show');
-      unreadCount = 0;
-      fabBadge.classList.remove('show');
-    } else {
-      fabScroll.classList.add('show');
-    }
-  });
-
-  function scrollToBottom() {
-    feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' });
-    autoScroll = true;
-    unreadCount = 0;
-    fabScroll.classList.remove('show');
-    fabBadge.classList.remove('show');
-  }
-
-  // ── Time format ───────────────────────────────────────────────────────────────
-  function fmtTime(unix) {
-    const d = new Date(unix * 1000), now = new Date();
-    const p = n => String(n).padStart(2, '0');
-    const t = `${p(d.getHours())}:${p(d.getMinutes())}`;
-    return d.toDateString() === now.toDateString()
-      ? t : `${p(d.getDate())}/${p(d.getMonth()+1)} ${t}`;
-  }
-
-  // ── Build row ─────────────────────────────────────────────────────────────────
-  function buildRow(m, prevMsg, animate) {
-    const { groupName, author, body, timestamp,
-            contactId, chatId, media, location } = m;
-
-    const isMe   = author === 'Sen';
-    const gColor = groupColor(groupName);
-    const aColor = isMe ? '#7c3aed' : authorColor(author, contactId);
-
-    const isGrouped = prevMsg &&
-      prevMsg.author    === author &&
-      prevMsg.groupName === groupName &&
-      (timestamp - prevMsg.timestamp) <= GROUP_GAP_SEC;
-
-    // Row — gönderici rengiyle hafif backdrop
-    const row = document.createElement('div');
-    row.className = ['msg', isMe ? 'from-me' : '', isGrouped ? 'grouped' : '', animate ? 'new' : '']
-      .filter(Boolean).join(' ');
-    row.style.background = aColor + '0d'; // ~5% opaklık
-
-    // Left col — always a spacer with thread-line
-    const leftCol = document.createElement('div');
-    leftCol.className = 'avatar-spacer';
-    const line = document.createElement('div');
-    line.className = 'thread-line';
-    line.style.background = aColor;
-    leftCol.appendChild(line);
-    if (isGrouped) {
-      const ct = document.createElement('span');
-      ct.className = 'compact-time';
-      ct.textContent = fmtTime(timestamp);
-      leftCol.appendChild(ct);
-    }
-
-    // Content
-    const content = document.createElement('div');
-    content.className = 'msg-content';
-
-    if (!isGrouped) {
-      const meta = document.createElement('div');
-      meta.className = 'msg-meta';
-
-      const badge = document.createElement('span');
-      badge.className = 'group-badge';
-      badge.style.background = gColor + '20';
-      badge.style.color = gColor;
-      badge.textContent = groupName;
-      badge.onclick = () => {
-        if (filter.type === 'group' && filter.value === groupName) clearFilter();
-        else setFilter('group', groupName);
+    const authorEl = document.createElement('span');
+    authorEl.className = 'author-name' + (isMe ? ' is-me' : '');
+    authorEl.textContent = displayName(author, contactId);
+    authorEl.dataset.nkey = nicknameKey(contactId, author);
+    authorEl.style.background = aColor + '20'; authorEl.style.color = aColor;
+    if (!isMe) {
+      authorEl.onclick = e => {
+        e.stopPropagation();
+        openProfile(author, contactId);
       };
-
-      const authorEl = document.createElement('span');
-      authorEl.className = 'author-name' + (isMe ? ' is-me' : '');
-      authorEl.textContent = displayName(author, contactId);
-      authorEl.dataset.nkey = nicknameKey(contactId, author);
-      authorEl.style.background = aColor + '20';
-      authorEl.style.color = aColor;
-      if (!isMe) {
-        authorEl.onclick = e => {
-          e.stopPropagation();
-          const reg = contactRegistry.get(author);
-          openProfile(author, contactId || reg?.contactId);
-        };
-      }
-
-      const timeEl = document.createElement('span');
-      timeEl.className = 'msg-time';
-      timeEl.textContent = fmtTime(timestamp);
-
-      meta.append(badge, authorEl, timeEl);
-      content.appendChild(meta);
     }
 
-    // Body
-    const bodyEl = document.createElement('div');
-    bodyEl.className = 'msg-body';
+    const timeEl = document.createElement('span');
+    timeEl.className = 'msg-time'; timeEl.textContent = fmtTime(timestamp);
 
-    if (location) {
-      const { latitude: lat, longitude: lon, description } = location;
-      const card = document.createElement('a');
-      card.className = 'location-card';
-      card.href = `https://www.google.com/maps?q=${lat},${lon}`;
-      card.target = '_blank'; card.rel = 'noopener noreferrer';
+    meta.append(badge, authorEl, timeEl);
+    content.appendChild(meta);
+  }
+
+  const bodyEl = document.createElement('div');
+  bodyEl.className = 'msg-body';
+
+  if (location) {
+    const { latitude: lat, longitude: lon, description } = location;
+    const card = document.createElement('a');
+    card.className = 'location-card';
+    card.href = `https://www.google.com/maps?q=${lat},${lon}`;
+    card.target = '_blank'; card.rel = 'noopener noreferrer';
+    const img = document.createElement('img');
+    img.src = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=15&size=300x150&markers=${lat},${lon},red-pushpin`;
+    img.alt = 'Konum'; img.onerror = () => img.style.display = 'none';
+    const foot = document.createElement('div');
+    foot.className = 'loc-footer';
+    foot.innerHTML = `📍 <span>${description||`${lat.toFixed(4)}, ${lon.toFixed(4)}`}</span><span style="margin-left:auto;font-size:11px;opacity:.6">Maps →</span>`;
+    card.append(img, foot);
+    bodyEl.appendChild(card);
+  } else if (media) {
+    const { mimetype, data } = media;
+    const src = `data:${mimetype};base64,${data}`;
+    if (mimetype.startsWith('image/')) {
       const img = document.createElement('img');
-      img.src = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=15&size=300x150&markers=${lat},${lon},red-pushpin`;
-      img.alt = 'Konum'; img.onerror = () => img.style.display = 'none';
-      const foot = document.createElement('div');
-      foot.className = 'loc-footer';
-      foot.innerHTML = `📍 <span>${description || `${lat.toFixed(4)}, ${lon.toFixed(4)}`}</span><span style="margin-left:auto;font-size:11px;opacity:.6">Maps →</span>`;
-      card.append(img, foot);
-      bodyEl.appendChild(card);
-    } else if (media) {
-      const { mimetype, data } = media;
-      const src = `data:${mimetype};base64,${data}`;
-      if (mimetype.startsWith('image/')) {
-        const img = document.createElement('img');
-        img.className = 'media-img'; img.src = src;
-        img.onclick = () => window.open(src, '_blank');
-        bodyEl.appendChild(img);
-        if (body && body !== '📷 Fotoğraf') {
-          const cap = document.createElement('div');
-          cap.style.marginTop = '5px'; cap.textContent = body;
-          bodyEl.appendChild(cap);
-        }
-      } else if (mimetype.startsWith('video/')) {
-        const vid = document.createElement('video');
-        vid.className = 'media-video'; vid.src = src; vid.controls = true;
-        bodyEl.appendChild(vid);
-      } else if (mimetype.startsWith('audio/')) {
-        const aud = document.createElement('audio');
-        aud.className = 'media-audio'; aud.src = src; aud.controls = true;
-        bodyEl.appendChild(aud);
-      } else {
-        bodyEl.textContent = body;
+      img.className = 'media-img'; img.src = src;
+      img.onclick = () => window.open(src, '_blank');
+      bodyEl.appendChild(img);
+      if (body && body !== '📷 Fotoğraf') {
+        const cap = document.createElement('div');
+        cap.style.marginTop = '5px'; cap.textContent = body;
+        bodyEl.appendChild(cap);
       }
-    } else {
-      bodyEl.textContent = body;
-    }
-
-    content.appendChild(bodyEl);
-    row.append(leftCol, content);
-    return row;
+    } else if (mimetype.startsWith('video/')) {
+      const vid = document.createElement('video');
+      vid.className = 'media-video'; vid.src = src; vid.controls = true;
+      bodyEl.appendChild(vid);
+    } else if (mimetype.startsWith('audio/')) {
+      const aud = document.createElement('audio');
+      aud.className = 'media-audio'; aud.src = src; aud.controls = true;
+      bodyEl.appendChild(aud);
+    } else { bodyEl.textContent = body; }
+  } else {
+    bodyEl.textContent = body;
   }
 
-  // ── Render all ────────────────────────────────────────────────────────────────
-  function renderAll(scrollToEnd = false) {
-    Array.from(feed.children).forEach(el => { if (el.id !== 'empty') el.remove(); });
+  content.appendChild(bodyEl);
+  row.append(leftCol, content);
+  return row;
+}
 
-    const visible = allMessages.filter(msgMatches);
-    if (!visible.length) { empty.style.display = ''; updateMsgCount(); return; }
-    empty.style.display = 'none';
+// ── Render all ────────────────────────────────────────────────────────────────
+function renderAll(scrollToEnd = false) {
+  Array.from(feed.children).forEach(el => { if (el.id !== 'empty') el.remove(); });
+  const visible = allMessages.filter(msgMatches);
+  if (!visible.length) { empty.style.display = ''; updateMsgCount(); return; }
+  empty.style.display = 'none';
+  const frag = document.createDocumentFragment();
+  visible.forEach((m, i) => frag.appendChild(buildRow(m, visible[i-1]||null, false)));
+  feed.appendChild(frag);
+  updateMsgCount();
+  if (scrollToEnd || autoScroll)
+    requestAnimationFrame(() => requestAnimationFrame(() => { feed.scrollTop = feed.scrollHeight; }));
+}
 
-    const frag = document.createDocumentFragment();
-    visible.forEach((m, i) => frag.appendChild(buildRow(m, visible[i-1] || null, false)));
-    feed.appendChild(frag);
-    updateMsgCount();
-
-    if (scrollToEnd || autoScroll) {
-      requestAnimationFrame(() => requestAnimationFrame(() => { feed.scrollTop = feed.scrollHeight; }));
-    }
+// ── Add single message ────────────────────────────────────────────────────────
+function addMessage(m, animate = false) {
+  allMessages.push(m);
+  ensureGroupChip(m.groupName);
+  if (m.contactId && m.author !== 'Sen') contactRegistry.set(m.author, { contactId: m.contactId });
+  updateMsgCount();
+  if (!msgMatches(m)) {
+    if (!autoScroll) { unreadCount++; fabBadge.textContent = unreadCount>99?'99+':unreadCount; fabBadge.classList.add('show'); }
+    return;
   }
+  empty.style.display = 'none';
+  const visible = allMessages.filter(msgMatches);
+  const prev = visible[visible.length - 2] || null;
+  feed.appendChild(buildRow(m, prev, animate));
+  if (autoScroll) { feed.scrollTop = feed.scrollHeight; }
+  else { unreadCount++; fabBadge.textContent = unreadCount>99?'99+':unreadCount; fabBadge.classList.add('show'); }
+}
 
-  // ── Add single message ────────────────────────────────────────────────────────
-  function addMessage(m, animate = false) {
-    allMessages.push(m);
-    ensureGroupChip(m.groupName);
-    // Kişi kaydı
-    if (m.contactId && m.author !== 'Sen') {
-      contactRegistry.set(m.author, { contactId: m.contactId });
-    }
-    updateMsgCount();
+// ── Boot ──────────────────────────────────────────────────────────────────────
+// 1) Status: hemen "Aktif" göster
+setTimeout(() => { statusDot.className = 'ready'; statusTxt.textContent = 'Aktif'; }, 800);
 
-    if (!msgMatches(m)) {
-      if (!autoScroll) {
-        unreadCount++;
-        fabBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-        fabBadge.classList.add('show');
-      }
-      return;
-    }
+// 2) Geçmiş mesajları yükle
+makeHistory().forEach(m => { allMessages.push(m); ensureGroupChip(m.groupName); });
+renderAll(true);
+[80, 350, 800].forEach(ms => setTimeout(() => { feed.scrollTop = feed.scrollHeight; }, ms));
 
-    empty.style.display = 'none';
-    const visible = allMessages.filter(msgMatches);
-    const prev = visible[visible.length - 2] || null;
-    feed.appendChild(buildRow(m, prev, animate));
+// 3) Canlı mesaj simülasyonu
+makeLive().forEach(({ delay, groupName, author, body, contactId, chatId, media, location }) => {
+  setTimeout(() => {
+    addMessage({
+      groupName, author, body,
+      timestamp: Math.floor(Date.now() / 1000),
+      contactId, chatId, media, location,
+    }, true);
+  }, delay);
+});
 
-    if (autoScroll) {
-      feed.scrollTop = feed.scrollHeight;
-    } else {
-      unreadCount++;
-      fabBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-      fabBadge.classList.add('show');
-    }
-  }
-
-  // ── History ───────────────────────────────────────────────────────────────────
-  async function loadHistory() {
-    try {
-      const msgs = await fetch('/api/messages?limit=100').then(r => r.json());
-      msgs.forEach(m => { allMessages.push(m); ensureGroupChip(m.groupName); });
-      renderAll(true);
-      [80, 350, 800].forEach(ms => setTimeout(() => { feed.scrollTop = feed.scrollHeight; }, ms));
-    } catch (e) { console.error('History load failed:', e); }
-  }
-
-  // ── Socket.io ─────────────────────────────────────────────────────────────────
-  const socket = io();
-
-  socket.on('connect', () => { statusTxt.textContent = 'Bağlandı'; });
-  socket.on('disconnect', () => {
-    statusTxt.textContent = 'Koptu';
-    statusDot.className = '';
-  });
-  socket.on('wa_status', ({ status, reason }) => {
-    statusDot.className = status;
-    const map = { ready: 'Aktif', disconnected: 'Bağlantı koptu', auth_failure: 'Hata' };
-    statusTxt.textContent = map[status] || status;
-  });
-  socket.on('new_message', m => addMessage(m, true));
-
-  loadHistory();
-  updateFilterUI();
+updateFilterUI();
 </script>
 </body>
 </html>
