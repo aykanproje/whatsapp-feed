@@ -550,7 +550,7 @@ function makeLive() {
     { delay: 85000, g:'Ofis Genel 💼',  ...P.ahmet,   b:'Herkese iyi akşamlar! 🌆' },
   ].map(item => ({
     ...item,
-    groupName: item.g, author: item.a,
+    groupName: item.g, author: item.a, body: item.b,
     contactId: item.id,
     chatId: item.g.toLowerCase().replace(/[^a-z0-9]/g, '') + '@g.us',
     timestamp: 0, // will be set on send
