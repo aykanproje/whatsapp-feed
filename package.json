@@ -1,0 +1,19 @@
+{
+  "name": "whatsapp-feed",
+  "version": "1.0.0",
+  "description": "WhatsApp Multi-Group Unified Feed",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "preview": "node preview-server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "qrcode-terminal": "^0.12.0",
+    "socket.io": "^4.7.5",
+    "whatsapp-web.js": "^1.23.0"
+  }
+}
