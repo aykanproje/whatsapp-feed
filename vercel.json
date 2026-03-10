@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "buildCommand": null,
+  "outputDirectory": "public",
+  "framework": null,
+  "rewrites": [
+    { "source": "/", "destination": "/preview.html" }
+  ]
+}
